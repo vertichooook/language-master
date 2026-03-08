@@ -11,29 +11,31 @@ from languages import LANGUAGES, get_language_choices  # ← Импортиру�
 
 app = Flask(__name__)
 
-# --- КОНФИГУРАЦИЯ ---
-app.config['SECRET_KEY'] = 'super-secret-key-change-in-production'
+# === СЕКРЕТНЫЙ КЛЮЧ ===
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-key-change-in-production')
 
-adatabase_url = os.getenv('DATABASE_URL')
+# === БАЗА ДАННЫХ ===
+# ← ← ← ВОТ ЭТА СТРОКА БЫЛА ПРОПУЩЕНА:
+database_url = os.getenv('DATABASE_URL')
+
 if database_url:
-    # Для PostgreSQL (Render)
+    # Конвертация postgres:// в postgresql:// для SQLAlchemy
     if database_url.startswith('postgres://'):
         database_url = database_url.replace('postgres://', 'postgresql://', 1)
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+    print(f"✅ Connected to PostgreSQL")
 else:
-    # Для локальной разработки (SQLite)
+    # Локальная разработка (SQLite)
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(app.instance_path, 'database.db')
+    print("⚠️ Using local SQLite database")
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-try:
-    os.makedirs(app.instance_path)
-except OSError:
-    pass
-
 db = SQLAlchemy(app)
 
-
+# === СОЗДАНИЕ ТАБЛИЦ ===
+with app.app_context():
+    db.create_all()
 # --- МОДЕЛИ БАЗЫ ДАННЫХ ---
 
 class User(db.Model):
