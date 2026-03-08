@@ -1,9 +1,25 @@
-# .gitignore
+# База данных
 instance/database.db
-__pycache__/
-*.pyc
 *.db
-.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
 venv/
+env/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Логи и окружение
 *.log
-.pytest_cache/
+.env
