@@ -1,0 +1,9 @@
+# requirements.txt
+flask==3.0.0
+flask-sqlalchemy==3.1.1
+flask-wtf==1.2.1
+requests==2.31.0
+werkzeug==3.0.1
+email-validator==2.1.0
+gunicorn==21.2.0          # ← Обязательно!
+psycopg2-binary==2.9.9    # ← Обязательно для PostgreSQL!
