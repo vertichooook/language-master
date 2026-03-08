@@ -15,7 +15,6 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-key-change-in-production')
 
 # === БАЗА ДАННЫХ ===
-# ← ← ← ВОТ ЭТА СТРОКА БЫЛА ПРОПУЩЕНА:
 database_url = os.getenv('DATABASE_URL')
 
 if database_url:
@@ -23,11 +22,14 @@ if database_url:
     if database_url.startswith('postgres://'):
         database_url = database_url.replace('postgres://', 'postgresql://', 1)
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
-    print(f"✅ Connected to PostgreSQL")
+    print("✅ Using PostgreSQL database")
 else:
-    # Локальная разработка (SQLite)
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(app.instance_path, 'database.db')
-    print("⚠️ Using local SQLite database")
+    # ⚠️ SQLite ТОЛЬКО для локальной разработки
+    # На Render папка instance/ может не сохраняться
+    instance_path = os.path.join(os.getcwd(), 'instance')
+    os.makedirs(instance_path, exist_ok=True)
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{instance_path}/database.db'
+    print("⚠️ Using local SQLite database (NOT for production)")
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -35,7 +37,13 @@ db = SQLAlchemy(app)
 
 # === СОЗДАНИЕ ТАБЛИЦ ===
 with app.app_context():
-    db.create_all()
+    try:
+        db.create_all()
+        print("✅ Database tables created")
+    except Exception as e:
+        print(f"❌ Error creating tables: {e}")
+        # Не прерываем запуск, чтобы приложение хотя бы запустилось
+
 # --- МОДЕЛИ БАЗЫ ДАННЫХ ---
 
 class User(db.Model):
@@ -276,13 +284,9 @@ def delete_word(word_id):
     return redirect(url_for('dashboard'))
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-
     # Для локальной разработки
-    app.run(debug=True)
-
-# Для Production (Render, PythonAnywhere) добавьте в конец файла:
-if os.getenv('RENDER') or os.getenv('PYTHONANYWHERE'):
-    with app.app_context():
-        db.create_all()
+    app.run(debug=True, host='0.0.0.0', port=5000)
+else:
+    # Для Render: используем порт из переменной окружения
+    port = int(os.getenv('PORT', 10000))
+    app.run(host='0.0.0.0', port=port)
