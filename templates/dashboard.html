@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="translate-page" style="min-height: auto; padding: 60px 40px;">
+    <div class="translate-container">
+        <h2>📚 Мой Словарь</h2>
+        <p class="user-greeting">👋 {{ username }}, вот ваши слова:</p>
+
+        {% if words %}
+            <div class="words-count">
+                <span style="font-size: 1.5rem;">📊</span>
+                Всего слов: <strong style="font-size: 1.3rem;">{{ words|length }}</strong>
+                <span style="margin-left: 15px; font-size: 0.9rem; color: rgba(255,255,255,0.6);">
+                    🌍 {{ languages|length }} языков доступно
+                </span>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>📝 Оригинал</th>
+                            <th>🌍 Перевод</th>
+                            <th>🔄 Направление</th>
+                            <th>📖 Значение</th>
+                            <th>⚙️ Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for word in words %}
+                        <tr>
+                            <td>
+                                <span style="font-size: 1.1rem;">{{ word.original }}</span>
+                                <br>
+                                <span class="lang-badge source" style="font-size: 0.7rem; padding: 3px 8px; margin-top: 5px; display: inline-block;">
+                                    {{ word.source_lang|upper }} • {{ languages.get(word.source_lang, '') }}
+                                </span>
+                            </td>
+                            <td>
+                                <strong style="font-size: 1.1rem; color: rgba(46, 204, 113, 1);">{{ word.translation }}</strong>
+                                <br>
+                                <span class="lang-badge target" style="font-size: 0.7rem; padding: 3px 8px; margin-top: 5px; display: inline-block;">
+                                    {{ word.target_lang|upper }} • {{ languages.get(word.target_lang, '') }}
+                                </span>
+                            </td>
+                            <td>
+                                <div style="display: flex; flex-direction: column; gap: 4px; font-size: 0.85rem;">
+                                    <span>
+                                        <span class="lang-badge source" style="font-size: 0.65rem; padding: 2px 6px;">
+                                            {{ word.source_lang|upper }}
+                                        </span>
+                                        →
+                                        <span class="lang-badge target" style="font-size: 0.65rem; padding: 2px 6px;">
+                                            {{ word.target_lang|upper }}
+                                        </span>
+                                    </span>
+                                </div>
+                            </td>
+                            <td style="max-width: 280px; line-height: 1.4; font-size: 0.95rem;">
+                                {{ word.definition if word.definition else '—' }}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('delete_word', word_id=word.id) }}"
+                                   class="btn-delete"
+                                   onclick="return confirm('Удалить это слово из словаря?')">
+                                    🗑️
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div style="font-size: 4rem; margin-bottom: 20px;">📭</div>
+                <p style="font-size: 1.3rem; margin-bottom: 10px;">Словарь пуст</p>
+                <p style="color: rgba(255,255,255,0.6); margin-bottom: 30px;">
+                    Переведите что-нибудь на одном из {{ languages|length }} языков и добавьте в словарь!
+                </p>
+                <a href="{{ url_for('translate') }}" class="btn btn-translate" style="font-size: 1.1rem; padding: 15px 40px;">
+                    🚀 Начать перевод
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

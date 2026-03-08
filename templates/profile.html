@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="translate-page" style="min-height: auto; padding: 60px 40px;">
+    <div class="translate-container">
+        <h2>👤 Профиль пользователя</h2>
+        
+        <div class="profile-card">
+            <div class="profile-avatar">👤</div>
+            <div class="profile-info">
+                <h3>{{ user.username }}</h3>
+                <p class="profile-email">📧 {{ user.email }}</p>
+                <p class="profile-stats">📚 Слов в словаре: <strong>{{ words_count }}</strong></p>
+            </div>
+        </div>
+        
+        <div class="profile-actions">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-save">📖 Мой словарь</a>
+            <a href="{{ url_for('translate') }}" class="btn btn-translate">🌐 Переводчик</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

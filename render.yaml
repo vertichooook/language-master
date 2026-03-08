@@ -1,0 +1,26 @@
+# render.yaml
+# Конфигурация для автоматического деплоя на Render
+
+services:
+  - type: web
+    name: language-master
+    env: python
+    region: frankfurt  # или: oregon, singapore, ohio
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --log-file -
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: SECRET_KEY
+        generateValue: true
+      - key: FLASK_ENV
+        value: production
+
+databases:
+  - name: lang-db
+    databaseName: language_master_db
+    user: languser
+    plan: free
+    ipAllowList: []  # Разрешить доступ отовсюду (для free tier)

@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="hero">
+    <h1>🌍 Language Master</h1>
+
+    <p>
+        Современный переводчик с эффектом живого стекла.<br>
+        Переводи слова и фразы между 5 языками мгновенно!
+    </p>
+
+    {% if session.get('user_id') %}
+    <div class="welcome-message" style="background: rgba(46, 204, 113, 0.15); padding: 20px 40px; border-radius: 15px; border: 1px solid rgba(46, 204, 113, 0.3); margin: 30px 0;">
+        <p style="color: rgba(255,255,255,0.95); font-size: 1.2rem; margin: 0;">
+            👋 Добро пожаловать, <strong>{{ session.get('username') }}</strong>!
+            <a href="{{ url_for('dashboard') }}" style="color: rgba(46, 204, 113, 1); text-decoration: none; font-weight: 600;">Перейти к словарю →</a>
+        </p>
+    </div>
+    {% else %}
+    <div class="auth-prompt" style="background: rgba(102, 126, 234, 0.15); padding: 20px 40px; border-radius: 15px; border: 1px solid rgba(102, 126, 234, 0.3); margin: 30px 0;">
+        <p style="color: rgba(255,255,255,0.95); font-size: 1.2rem; margin: 0;">
+            🔐 <a href="{{ url_for('login') }}" style="color: rgba(102, 126, 234, 1); text-decoration: none; font-weight: 600;">Войдите</a> или
+            <a href="{{ url_for('register') }}" style="color: rgba(102, 126, 234, 1); text-decoration: none; font-weight: 600;">зарегистрируйтесь</a>,
+            чтобы сохранить слова в личный словарь
+        </p>
+    </div>
+    {% endif %}
+
+    <div class="features">
+        <div class="feature-item">
+            <span class="icon">🔄</span>
+            <h3>Двусторонний</h3>
+            <p>Перевод в любую сторону между языками</p>
+        </div>
+
+        <div class="feature-item">
+            <span class="icon">📖</span>
+            <h3>Словарь</h3>
+            <p>Значения слов из Cambridge Dictionary</p>
+        </div>
+
+        <div class="feature-item">
+            <span class="icon">💾</span>
+            <h3>Сохранение</h3>
+            <p>Личный словарь для запоминания</p>
+        </div>
+
+        <div class="feature-item">
+            <span class="icon">🎨</span>
+            <h3>Дизайн</h3>
+            <p>Liquid Glass тёмная тема</p>
+        </div>
+    </div>
+
+    <div class="languages">
+        <p>🇷🇺 Русский • 🇬🇧 Английский • 🇩🇪 Немецкий • 🇪🇸 Испанский • 🇨🇳 Китайский</p>
+    </div>
+
+    <a href="{{ url_for('translate') }}" class="btn-translate">
+        🚀 Начать перевод
+    </a>
+</div>
+{% endblock %}

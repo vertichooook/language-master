@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="translate-page">
+    <div class="translate-container">
+        <h2>🌐 Переводчик</h2>
+        <p class="language-info">Поддерживается {{ languages|length }} языков мира 🌍</p>
+
+        <form method="POST" class="translation-form" id="translationForm">
+            {{ form.hidden_tag() }}
+
+            <div class="language-selector" id="languageSelector">
+                <div class="lang-box source-box">
+                    <label class="lang-label">📥 С языка</label>
+                    {{ form.source_language(class="form-control lang-select", id="source_lang") }}
+                </div>
+
+                <button type="button" class="swap-btn" id="swapBtn" title="Поменять языки местами">
+                    ⇄
+                </button>
+
+                <div class="lang-box target-box">
+                    <label class="lang-label">📤 На язык</label>
+                    {{ form.target_language(class="form-control lang-select", id="target_lang") }}
+                </div>
+            </div>
+
+            <div class="form-group">
+                {{ form.word.label }}
+                {{ form.word(class="form-control", placeholder="Введите слово или фразу для перевода...", id="wordInput", autocomplete="off") }}
+            </div>
+
+            {{ form.submit(class="btn btn-translate", id="submitBtn") }}
+        </form>
+
+        {% if result %}
+        <div class="result-card">
+            <h3 style="color: #fff; margin-bottom: 25px;">📋 Результат перевода</h3>
+            <div class="translation-result">
+                <div class="result-row">
+                    <span class="lang-badge source">{{ result.source_lang|upper }}</span>
+                    <span class="original-text">{{ result.original }}</span>
+                    <small style="color: rgba(255,255,255,0.6);">({{ result.source_name }})</small>
+                </div>
+                <div class="arrow-down">⬇</div>
+                <div class="result-row">
+                    <span class="lang-badge target">{{ result.target_lang|upper }}</span>
+                    <span class="translated-text">{{ result.translated }}</span>
+                    <small style="color: rgba(255,255,255,0.6);">({{ result.target_name }})</small>
+                </div>
+            </div>
+
+            <div class="definition-block">
+                <strong>📖 Значение (на {{ result.target_lang|upper }}):</strong>
+                <p>{{ result.definition }}</p>
+            </div>
+
+            {% if session.get('user_id') %}
+            <form method="POST" action="{{ url_for('dashboard') }}" class="save-form">
+                <input type="hidden" name="original" value="{{ result.original }}">
+                <input type="hidden" name="translation" value="{{ result.translated }}">
+                <input type="hidden" name="source_lang" value="{{ result.source_lang }}">
+                <input type="hidden" name="target_lang" value="{{ result.target_lang }}">
+                <input type="hidden" name="definition" value="{{ result.definition }}">
+                <button type="submit" class="btn btn-save" style="width: 100%; font-size: 1.1rem; padding: 15px;">
+                    💾 Добавить в словарь
+                </button>
+            </form>
+            {% else %}
+            <div class="login-prompt">
+                <p>🔐 <a href="{{ url_for('login') }}">Войдите</a> или <a href="{{ url_for('register') }}">зарегистрируйтесь</a>, чтобы сохранить слово в словарь</p>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    const sourceSelect = document.getElementById('source_lang');
+    const targetSelect = document.getElementById('target_lang');
+    const swapBtn = document.getElementById('swapBtn');
+    const languageSelector = document.getElementById('languageSelector');
+    const wordInput = document.getElementById('wordInput');
+
+    // Все доступные языки (из Python через Jinja2)
+    const allLanguages = {{ languages.keys() | list | tojson }};
+
+    function getRandomDifferentLanguage(currentLang) {
+        const available = allLanguages.filter(lang => lang !== currentLang);
+        const randomIndex = Math.floor(Math.random() * available.length);
+        return available[randomIndex];
+    }
+
+    function autoFixLanguages() {
+        const sourceLang = sourceSelect.value;
+        const targetLang = targetSelect.value;
+
+        if (sourceLang === targetLang) {
+            const newTargetLang = getRandomDifferentLanguage(sourceLang);
+            targetSelect.value = newTargetLang;
+            showAutoFixNotification(newTargetLang);
+        }
+    }
+
+    function showAutoFixNotification(newLang) {
+        const existing = document.querySelector('.auto-fix-notification');
+        if (existing) existing.remove();
+
+        // Получаем название языка из data-атрибута select
+        const option = targetSelect.querySelector(`option[value="${newLang}"]`);
+        const langName = option ? option.text.replace(/^[^\s]+\s/, '') : newLang;
+
+        const notification = document.createElement('div');
+        notification.className = 'auto-fix-notification';
+        notification.textContent = `✨ Языки совпадали. Автоматически выбран: ${langName}`;
+        languageSelector.appendChild(notification);
+
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 10);
+
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }, 2500);
+    }
+
+    function swapLanguages() {
+        const sourceLang = sourceSelect.value;
+        const targetLang = targetSelect.value;
+
+        swapBtn.style.transform = 'rotate(180deg) scale3d(1.15, 1.15, 1.15)';
+        setTimeout(() => {
+            swapBtn.style.transform = 'rotate(0deg) scale3d(1, 1, 1)';
+        }, 300);
+
+        sourceSelect.value = targetLang;
+        targetSelect.value = sourceLang;
+
+        autoFixLanguages();
+    }
+
+    // Поиск по языкам в выпадающем списке (улучшение UX)
+    function enableLanguageSearch(selectElement) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'language-search-wrapper';
+        wrapper.style.position = 'relative';
+
+        const searchInput = document.createElement('input');
+        searchInput.type = 'text';
+        searchInput.placeholder = '🔍 Поиск языка...';
+        searchInput.className = 'language-search-input';
+        searchInput.style.cssText = `
+            width: 100%;
+            padding: 8px 12px;
+            margin-bottom: 5px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 0.9rem;
+        `;
+
+        selectElement.parentNode.insertBefore(wrapper, selectElement);
+        wrapper.appendChild(searchInput);
+        wrapper.appendChild(selectElement);
+
+        searchInput.addEventListener('input', function() {
+            const filter = this.value.toLowerCase();
+            const options = selectElement.querySelectorAll('option');
+
+            options.forEach(option => {
+                const text = option.textContent.toLowerCase();
+                option.style.display = text.includes(filter) ? '' : 'none';
+            });
+        });
+    }
+
+    // Инициализация
+    sourceSelect.addEventListener('change', autoFixLanguages);
+    targetSelect.addEventListener('change', autoFixLanguages);
+    swapBtn.addEventListener('click', swapLanguages);
+    autoFixLanguages();
+    wordInput.focus();
+
+    // Включаем поиск для больших списков (опционально)
+    enableLanguageSearch(sourceSelect);
+    enableLanguageSearch(targetSelect);
+</script>
+{% endblock %}

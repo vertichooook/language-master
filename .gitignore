@@ -1,0 +1,9 @@
+# .gitignore
+instance/database.db
+__pycache__/
+*.pyc
+*.db
+.env
+venv/
+*.log
+.pytest_cache/
